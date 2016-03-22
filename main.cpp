@@ -16,7 +16,31 @@ string intToString(int number){
 	return ss.str();
 }
 
-void searchForMovement(Mat thresholdImage, Mat &cameraFeed){
+int main()
+{
+    Mat grayImage1;
+    Mat differenceImage;
+    Mat thresholdImage;
+
+    Mat white(500,500,CV_8UC1,Scalar(255,255,255));
+    Mat img=imread("1.png");
+
+    if(img.empty()){
+        cout<<"Cannot read the image!"<<endl;
+        return -1;
+    }
+
+    resize(img,img,Size(500,500));
+    imshow("1.png",img);
+
+    cvtColor(img,grayImage1,CV_BGR2GRAY);
+
+    absdiff(white,grayImage1,differenceImage);
+
+    threshold(differenceImage,thresholdImage,50,255,THRESH_BINARY);
+    blur(thresholdImage,thresholdImage,Size(10,10));
+    threshold(thresholdImage,thresholdImage,20,255,THRESH_BINARY);
+
     bool objectDetected = false;
     vector< vector<Point> > contours;
     vector<Vec4i> hierarchy;
@@ -48,46 +72,10 @@ void searchForMovement(Mat thresholdImage, Mat &cameraFeed){
     int y = theObject[1];
     int xlength = theObject[2];
     int ylength = theObject[3];
-    Scalar color = Scalar(0,255,0);
 
-    rectangle(cameraFeed,Point(x-xlength/2,y-ylength/2),Point(x+xlength/2,y+ylength/2),color);
-
-    line(cameraFeed,Point(x,y),Point(x+25,y),color);
-    line(cameraFeed,Point(x,y),Point(x-25,y),color);
-    line(cameraFeed,Point(x,y),Point(x,y+25),color);
-    line(cameraFeed,Point(x,y),Point(x,y-25),color);
-
-    putText(cameraFeed,"Tracking object at (" + intToString(x)+","+intToString(y)+")",Point(x,y),1,1,Scalar(255,0,0),2);
-
-}
-
-int main()
-{
-    Mat grayImage1;
-    Mat differenceImage;
-    Mat thresholdImage;
-
-    Mat white(500,500,CV_8UC1,Scalar(255,255,255));
-    Mat img=imread("1.png");
-
-    if(img.empty()){
-        cout<<"Cannot read the image!"<<endl;
-        return -1;
-    }
-
-    resize(img,img,Size(500,500));
-    imshow("1.png",img);
-    imshow("white",white);
-
-    cvtColor(img,grayImage1,CV_BGR2GRAY);
-
-    absdiff(grayImage1,white,differenceImage);
-
-    threshold(differenceImage,thresholdImage,20,255,THRESH_BINARY);
-
-    searchForMovement(thresholdImage,img);
-
-    imshow("Frame",img);
+    Mat cropedImage = Mat(img,Rect(x-xlength/2,y-ylength/2,xlength,ylength)).clone();
+    resize(cropedImage,cropedImage,Size(500,500));
+    imshow("cropedImage",cropedImage);
 
     waitKey(0);
     destroyAllWindows();
