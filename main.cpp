@@ -41,20 +41,17 @@ int main()
     blur(thresholdImage,thresholdImage,Size(10,10));
     threshold(thresholdImage,thresholdImage,20,255,THRESH_BINARY);
 
-    bool objectDetected = false;
+    //these two vectors needed for output of findContours
     vector< vector<Point> > contours;
     vector<Vec4i> hierarchy;
 
-    findContours(thresholdImage,contours,hierarchy,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
+    //find contours of filtered image using openCV findContours function
+    findContours(thresholdImage,contours,hierarchy,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE );// retrieves external contours
 
-    if(contours.size()>0) objectDetected = true;
-    else objectDetected = false;
+    //if contours vector is not empty, we have found some objects
+    for(int i=0; i<contours.size(); i++){
 
-    if(objectDetected){
-        vector< vector<Point> > largestContourVal;
-        largestContourVal.push_back(contours.at(contours.size()-1));
-
-        objectBondingRectangle = boundingRect(largestContourVal.at(0));
+        objectBondingRectangle = boundingRect(contours.at(i));
 
         int objx = objectBondingRectangle.width;
         int objy = objectBondingRectangle.height;
@@ -66,16 +63,14 @@ int main()
         theObject[1] = ypos;
         theObject[2] = objx;
         theObject[3] = objy;
+
+        Mat cropedImage = Mat(img,Rect(xpos-objx/2,ypos-objy/2,objx,objy)).clone();
+        resize(cropedImage,cropedImage,Size(500,500));
+
+        char imageName[6] = "test";
+        imageName[4] = i+48;
+        imshow(imageName,cropedImage);
     }
-
-    int x = theObject[0];
-    int y = theObject[1];
-    int xlength = theObject[2];
-    int ylength = theObject[3];
-
-    Mat cropedImage = Mat(img,Rect(x-xlength/2,y-ylength/2,xlength,ylength)).clone();
-    resize(cropedImage,cropedImage,Size(500,500));
-    imshow("cropedImage",cropedImage);
 
     waitKey(0);
     destroyAllWindows();
